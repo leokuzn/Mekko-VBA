@@ -7,34 +7,49 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-Dim CommunicationPort As Long
-Dim ControlPort As Long
+Dim MekkoReceiverPort As Long
+Dim MekkoSenderPort As Long
 Dim DebugTrace As Boolean
 
+'----------------------------------
+'    Save this file interactive
+'----------------------------------
+Sub SaveByMekko()
+    Dim alert As Boolean
+    alert = Application.DisplayAlerts
+    Application.DisplayAlerts = False
+    If MsgBox("Clean up all worksheets ?", vbYesNo, "Confirm") = vbYes Then
+        CleanupByMekko
+    End If
+
+    If IsWorkbookVisible Then
+        DebugTraceMsg ("Hide and Save")
+        HideByMekko
+        ThisWorkbook.Save
+        UnhideByMekko
+    Else
+        DebugTraceMsg ("Save")
+        ThisWorkbook.Save
+    End If
+    Application.DisplayAlerts = alert
+End Sub
+
+'----------------------------------
+'             Debugging
+'----------------------------------
 Private Sub DebugTraceMsg(msg As String)
     If DebugTrace Then
         If msg = "Activated" Or msg = "SheetChange" Then
-            MsgBox "__MekkoExcel__.xlsm:   " & msg & " :  CommunicationPort=" & CommunicationPort
+            MsgBox "__MekkoExcel__.xlsm:   " & msg & " :  MekkoReceiverPort=" & MekkoReceiverPort
         Else
             MsgBox "__MekkoExcel__.xlsm:   " & msg
         End If
     End If
 End Sub
 
-Private Function IsMekkoActive() As Boolean
-    If InStr(MacScript("do shell script ""ps -ax | grep MGEditor"""), "MGEditor.app/Contents/MacOS/MGEditor") = 0 Then
-        IsMekkoActive = False
-    Else
-        IsMekkoActive = True
-    End If
-End Function
-
-Sub CheckMekkoApp()
-    If Not IsMekkoActive Then
-        CommunicationPort = 0
-    End If
-End Sub
-
+'----------------------------------
+'             Interactive debugging
+'----------------------------------
 Sub SetTraceByMekko()
     If DebugTrace Then
         If MsgBox("Set DebugTrace to Off?", vbYesNo, "Confirm") = vbYes Then DebugTrace = False
@@ -43,58 +58,36 @@ Sub SetTraceByMekko()
     End If
 End Sub
 
-Sub StartUpdateByMekko()
-    Workbooks("__MekkoExcel__.xlsm").Worksheets("Sheet1").Activate
+Sub TraceByMekko(flag As Integer)
+    If flag = 0 Then
+        DebugTrace = False
+    Else
+        DebugTrace = True
+    End If
 End Sub
 
-Sub EndUpdateByMekko()
-    Workbooks("__MekkoExcel__.xlsm").Worksheets("Sheet1").Activate
-    Range("A1").Select
-End Sub
-
-Sub SetCellByMekko(ByVal cAddr As String, ByVal cVal As String, ByVal cFormat As String, ByVal cPrefix As String, ByVal cFormula As String)
-    Addr = Application.ConvertFormula(Formula:="=" & cAddr, fromReferenceStyle:=xlR1C1, toReferenceStyle:=xlA1)
-    With Range(Addr)
-        .Clear
-        If Not cFormula = "" Then
-            .Formula = cFormula
-        Else
-            If Not cPrefix = "" Then cVal = cPrefix & cVal
-            .Value = cVal
-        End If
-        If cFormat = "" Then
-            .NumberFormat = "General"
-        Else
-            .NumberFormat = cFormat
-        End If
-        .Select
-    End With
-End Sub
-
-Sub TestByMekko()
-    Workbooks("__MekkoExcel__.xlsm").Worksheets("Sheet1").Activate
-    Dim rng As Range
-    Set rng = Selection
-    Selection.Clear
-    
-    'Application.ReferenceStyle = xlA1
-    
-    'Dim cmd As String
-    'cmd = "do shell script ""nc -v -l 1234"""
-    'msg = MacScript(cmd)
-    'MsgBox msg
-End Sub
-
+'----------------------------------
+'      Interactive Status
+'----------------------------------
 Sub StatusByMekko()
     Dim msg As String
-    Dim oldCommunicationPort As Long
-    oldCommunicationPort = CommunicationPort
+    Dim oldMekkoReceiverPort As Long
+    Dim oldMekkoSenderPort As Long
+    
+    oldMekkoReceiverPort = MekkoReceiverPort
+    oldMekkoSenderPort = MekkoSenderPort
     CheckMekkoApp
     
-    msg = "CommunicationPort=" & CommunicationPort
-    If Not oldCommunicationPort = CommunicationPort Then
-        msg = msg & " (was " & oldCommunicationPort & ")"
+    msg = "MekkoReceiverPort=" & MekkoReceiverPort
+    If Not oldMekkoReceiverPort = MekkoReceiverPort Then
+        msg = msg & " (was " & oldMekkoReceiverPort & ")"
     End If
+    
+    msg = msg & "   MekkoSenderPort=" & MekkoSenderPort
+    If Not oldMekkoSenderPort = MekkoSenderPort Then
+        msg = msg & "(was " & oldMekkoSenderPort & ")"
+    End If
+    
     msg = msg & vbCrLf
     
     Dim aName As String
@@ -117,13 +110,54 @@ NoActive:
 
 End Sub
 
-Sub SetCommunicationPortByMekko(port As Long)
-    CommunicationPort = port
-    If port < 1024 Then CommunicationPort = 0
+Sub TestByMekko()
+    '----------------------------------
+    '          Test
+    '----------------------------------
+End Sub
+
+'----------------------------------
+'      Checks: is Mekko application started?
+'----------------------------------
+Private Function IsMekkoActive() As Boolean
+    If InStr(MacScript("do shell script ""ps -ax | grep MGEditor"""), "MGEditor.app/Contents/MacOS/MGEditor") = 0 Then
+        IsMekkoActive = False
+    Else
+        IsMekkoActive = True
+    End If
+End Function
+
+Sub CheckMekkoApp()
+    If Not IsMekkoActive Then
+        MekkoReceiverPort = 0
+        MekkoSenderPort = 0
+    End If
+End Sub
+
+'----------------------------------
+'      Save Mekko communication ports
+'----------------------------------
+Sub SetMekkoReceiverPort(port As Long)
+    MekkoReceiverPort = port
+    If port < 1024 Then MekkoReceiverPort = 0
+End Sub
+
+Sub SetMekkoSenderPort(port As Long)
+    MekkoSenderPort = port
+    If port < 1024 Then MekkoSenderPort = 0
+End Sub
+
+'----------------------------------
+'      Send Information to Mekko over TCP/IP
+'----------------------------------
+Private Sub SendCmdToMekko(text As String)
+    Dim controlCode As String
+    controlCode = Chr(8)
+    SendTextToMekko (controlCode & text)
 End Sub
 
 Private Sub SendTextToMekko(text As String)
-    If CommunicationPort > 1024 Then
+    If MekkoReceiverPort > 1024 Then
         Dim msg As String
         Dim cmd As String
         
@@ -133,7 +167,7 @@ Private Sub SendTextToMekko(text As String)
         msg = Replace(msg, """", Chr(6))
         msg = Replace(msg, "\", Chr(7))
         
-        cmd = "do shell script ""echo '" & msg & Chr(4) & "' | nc 127.0.0.1 " & CommunicationPort & """"
+        cmd = "do shell script ""echo '" & msg & Chr(4) & "' | nc 127.0.0.1 " & MekkoReceiverPort & """"
         
         On Error GoTo ErrorHandling
             MacScript (cmd)
@@ -146,14 +180,73 @@ End If
 
 End Sub
 
-Sub TraceByMekko(flag As Integer)
-    If flag = 0 Then
-        DebugTrace = False
-    Else
-        DebugTrace = True
+'----------------------------------
+'     SetRangeValueByMekko
+'           (rowBeg, colBeg) - top left corner of Range
+'           (rowCount, colCount) - Dimansions of Range array
+'----------------------------------
+Sub SetRangeValueByMekko(ByVal rowBegVal As String, ByVal colBegVal As String, ByVal rowCountVal As String, ByVal colCountVal As String)
+    CheckMekkoApp
+    If Not IsMekkoActive Or MekkoSenderPort = 0 Then
+        SendCmdToMekko ("Error: MekkoSenderPort is not active")
+        GoTo EndSub
     End If
+    
+    Dim rowBeg As Long, rowEnd As Long, rowCount As Long
+    Dim colBeg As Long, colEnd As Long, colCount As Long
+    
+    rowBeg = rowBegVal
+    rowCount = rowCountVal
+    rowEnd = rowBeg + rowCount - 1
+    colBeg = colBegVal
+    colCount = colCountVal
+    colEnd = colBeg + colCount - 1
+
+    Dim cmd As String, data As String
+    cmd = "do shell script ""echo '" & Chr(4) & "' | nc 127.0.0.1 " & MekkoSenderPort & """"
+    On Error GoTo ErrorHandling
+    data = MacScript(cmd)
+    
+    Dim strArray() As String, delim As String
+    delim = Chr(9)
+    strArray = Split(data, delim)
+    
+    If 2 * rowCount * colCount > (UBound(strArray) - LBound(strArray) + 1) Then
+        SendCmdToMekko ("Error: Wrong data lenth")
+        GoTo EndSub
+    End If
+
+    Dim valArray() As Variant
+    ReDim valArray(1 To rowCount, 1 To colCount)
+    ReDim fmtArray(1 To rowCount, 1 To colCount)
+    
+    Application.ScreenUpdating = False
+    index = LBound(strArray)
+    For i = 1 To rowCount
+        For j = 1 To colCount
+            valArray(i, j) = strArray(index)
+            index = index + 1
+            fmtArray(i, j) = strArray(index)
+            index = index + 1
+        Next j
+    Next i
+        
+    Dim TheRange As Range
+    Set TheRange = Range(Cells(rowBeg, colBeg), Cells(rowEnd, colEnd))
+    TheRange.Value = valArray
+    TheRange.NumberFormat = fmtArray
+    
+    Application.ScreenUpdating = True
+    GoTo EndSub
+    
+ErrorHandling:
+    SendCmdToMekko ("Error: Wrong cmd=" & cmd)
+EndSub:
 End Sub
 
+'----------------------------------
+'    Mekko commands called by AppleScript
+'----------------------------------
 Sub CloseByMekko()
     Dim wb As Workbook
     Dim doQuit As Boolean
@@ -190,29 +283,13 @@ Sub CleanupByMekko()
     Next ws
 End Sub
 
-Sub SaveByMekko()
-    Dim alert As Boolean
-    alert = Application.DisplayAlerts
-    Application.DisplayAlerts = False
-    If MsgBox("Clean up all worksheets ?", vbYesNo, "Confirm") = vbYes Then
-        CleanupByMekko
-    End If
-
-    If IsWorkbookVisible Then
-        DebugTraceMsg ("Hide and Save")
-        HideByMekko
-        ThisWorkbook.Save
-        UnhideByMekko
-    Else
-        DebugTraceMsg ("Save")
-        ThisWorkbook.Save
-    End If
-    Application.DisplayAlerts = alert
-End Sub
-
+'----------------------------------
+'    Excel event: open this workbook
+'----------------------------------
 Private Sub Workbook_Open()
-    CommunicationPort = 0
-    ControlPort = 21954
+    MekkoReceiverPort = 0
+    MekkoSenderPort = 0
+    
     DebugTrace = False
     HideByMekko
     DebugTraceMsg ("Open")
@@ -222,19 +299,18 @@ Private Sub Workbook_Open()
     End If
 End Sub
 
-Private Sub Workbook_Activate()
-    DebugTraceMsg ("Activated")
-End Sub
-
-Private Sub Workbook_Deactivate()
-    DebugTraceMsg ("Deactivate")
-End Sub
-
+'-----------------------------------------------------
+'    Excel event: workbook closed
+'-----------------------------------------------------
 Private Sub Workbook_BeforeClose(Cancel As Boolean)
     DebugTraceMsg ("BeforeClose")
     If IsWorkbookVisible Then
         DebugTraceMsg ("Hide")
         HideByMekko
+        CheckMekkoApp
+        If MekkoReceiverPort > 1024 Then
+            SendCmdToMekko ("close")
+        End If
         Cancel = True
     Else
             DebugTraceMsg ("Close")
@@ -247,39 +323,20 @@ Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
     CleanupByMekko
 End Sub
 
-Private Sub Workbook_NewSheet(ByVal Sh As Object)
-    DebugTraceMsg ("NewSheet")
-End Sub
-
-Private Sub Workbook_SheetActivate(ByVal Sh As Object)
-    DebugTraceMsg ("SheetActivate")
-End Sub
-
-Private Sub Workbook_SheetDeactivate(ByVal Sh As Object)
-    DebugTraceMsg ("SheetDeactivate")
-End Sub
-
-Private Sub Workbook_WindowActivate(ByVal Wn As Window)
-    DebugTraceMsg ("WindowActivate")
-End Sub
-
-Private Sub Workbook_WindowDeactivate(ByVal Wn As Window)
-    DebugTraceMsg ("WindowDeactivate")
-End Sub
-
+'-----------------------------------------------------
+'    Excel event: worksheet changed, send everything to Mekko
+'-----------------------------------------------------
 Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
     DebugTraceMsg ("SheetChange")
-    If CommunicationPort > 1024 Then
+    If MekkoReceiverPort > 1024 Then
 
         Dim KeyCells As Range
         Set KeyCells = ActiveSheet.UsedRange
     
         Application.CalculateFull
         
-        Dim delim As String
+        Dim msg As String, delim As String
         delim = Chr(9)
-        
-        Dim msg As String
         msg = ""
         
         For Each c In ActiveSheet.UsedRange.Cells
@@ -296,45 +353,4 @@ Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
         Next
         SendTextToMekko (msg)
     End If
-End Sub
-
-Sub ArrayFillRange()
-'   Fill a range by transferring an array
-    Dim CellsDown As Long, CellsAcross As Long
-    Dim i As Long, j As Long
-    Dim StartTime As Double
-    Dim TempArray() As Variant
-    Dim TheRange As Range
-    Dim CurrVal As Long
-
-'   Change these values
-    CellsDown = 500
-    CellsAcross = 200
-
-    Cells.Clear
-'   Record starting time
-    StartTime = Timer
-
-'   Redimension temporary array
-    ReDim TempArray(1 To CellsDown, 1 To CellsAcross)
-
-'   Set worksheet range
-    Set TheRange = Range(Cells(1, 1), Cells(CellsDown, CellsAcross))
-
-'   Fill the temporary array
-    CurrVal = 0
-    Application.ScreenUpdating = False
-    For i = 1 To CellsDown
-        For j = 1 To CellsAcross
-            TempArray(i, j) = CurrVal
-            CurrVal = CurrVal + 1
-        Next j
-    Next i
-
-'   Transfer temporary array to worksheet
-    TheRange.Value = TempArray
-
-'   Display elapsed time
-    Application.ScreenUpdating = True
-    MsgBox Format(Timer - StartTime, "00.00") & " seconds"
 End Sub
