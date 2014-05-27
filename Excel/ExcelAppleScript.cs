@@ -15,7 +15,7 @@ namespace MGEditor
 		public ExcelAppleScript (){}
 
 		private static ExcelDataServer dataServer= null;
-		private static string MekkoExcel= "__MekkoExcel__.xlsm!ThisWorkbook.";
+		private static string MekkoExcel= "__MekkoExcel__.xlsb!ThisWorkbook.";
 		public static bool LogScriptCommands= false;
 
 		public static void ExcelCommunicationInit()

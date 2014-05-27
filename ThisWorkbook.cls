@@ -10,6 +10,7 @@ Attribute VB_Exposed = True
 Dim MekkoReceiverPort As Long
 Dim MekkoSenderPort As Long
 Dim DebugTrace As Boolean
+Const myName As String = "__MekkoExcel__.xlsb"
 
 '----------------------------------
 '    Save this file interactive
@@ -40,9 +41,9 @@ End Sub
 Private Sub DebugTraceMsg(msg As String)
     If DebugTrace Then
         If msg = "Activated" Or msg = "SheetChange" Then
-            MsgBox "__MekkoExcel__.xlsm:   " & msg & " :  MekkoReceiverPort=" & MekkoReceiverPort
+            MsgBox myName & ":   " & msg & " :  MekkoReceiverPort=" & MekkoReceiverPort
         Else
-            MsgBox "__MekkoExcel__.xlsm:   " & msg
+            MsgBox myName & ":   " & msg
         End If
     End If
 End Sub
@@ -111,9 +112,9 @@ NoActive:
 End Sub
 
 Sub TestByMekko()
-    '----------------------------------
-    '          Test
-    '----------------------------------
+'----------------------------------
+'          Test
+'----------------------------------
 End Sub
 
 '----------------------------------
@@ -182,25 +183,46 @@ End Sub
 
 '----------------------------------
 '     SetRangeValueByMekko
-'           (rowBeg, colBeg) - top left corner of Range
-'           (rowCount, colCount) - Dimansions of Range array
+'           (rowBegFmt,     colBegFmt)     - Top left corner of Range with Format
+'           (rowCountFmt, colCountFmt) - Dimensions of Range with Format
+'           (rowBegVal,     colBegVal)       - Top left corner of Range with content
+'           (rowCountVal, colCountVal)   - Dimensions of Range with content
 '----------------------------------
-Sub SetRangeValueByMekko(ByVal rowBegVal As String, ByVal colBegVal As String, ByVal rowCountVal As String, ByVal colCountVal As String)
+
+Sub SetRangeValueByMekko(ByVal rowBegFmt As String, ByVal colBegFmt As String, _
+                                            ByVal rowCountFmt As String, ByVal colCountFmt As String, _
+                                            ByVal rowBegVal As String, ByVal colBegVal As String, _
+                                            ByVal rowCountVal As String, ByVal colCountVal As String)
     CheckMekkoApp
     If Not IsMekkoActive Or MekkoSenderPort = 0 Then
         SendCmdToMekko ("Error: MekkoSenderPort is not active")
         GoTo EndSub
     End If
     
-    Dim rowBeg As Long, rowEnd As Long, rowCount As Long
-    Dim colBeg As Long, colEnd As Long, colCount As Long
+    Dim t As Single
+    t = Timer
     
-    rowBeg = rowBegVal
-    rowCount = rowCountVal
-    rowEnd = rowBeg + rowCount - 1
-    colBeg = colBegVal
-    colCount = colCountVal
-    colEnd = colBeg + colCount - 1
+    Dim rowBegF As Long, rowEndF As Long, rowCountF As Long, lenF As Long
+    Dim colBegF As Long, colEndF As Long, colCountF As Long
+    
+    rowBegF = rowBegFmt
+    rowCountF = rowCountFmt
+    rowEndF = rowBegF + rowCountF - 1
+    colBegF = colBegFmt
+    colCountF = colCountFmt
+    colEndF = colBegF + colCountF - 1
+    lenF = rowCountF * colCountF
+    
+    Dim rowBegV As Long, rowEndV As Long, rowCountV As Long, lenV As Long
+    Dim colBegV As Long, colEndV As Long, colCountV As Long
+    
+    rowBegV = rowBegVal
+    rowCountV = rowCountVal
+    rowEndV = rowBegV + rowCountV - 1
+    colBegV = colBegVal
+    colCountV = colCountVal
+    colEndV = colBegV + colCountV - 1
+    lenV = rowCountV * colCountV
 
     Dim cmd As String, data As String
     cmd = "do shell script ""echo '" & Chr(4) & "' | nc 127.0.0.1 " & MekkoSenderPort & """"
@@ -211,32 +233,48 @@ Sub SetRangeValueByMekko(ByVal rowBegVal As String, ByVal colBegVal As String, B
     delim = Chr(9)
     strArray = Split(data, delim)
     
-    If 2 * rowCount * colCount > (UBound(strArray) - LBound(strArray) + 1) Then
+    If lenV + lenF > (UBound(strArray) - LBound(strArray) + 1) Then
         SendCmdToMekko ("Error: Wrong data lenth")
         GoTo EndSub
     End If
-
-    Dim valArray() As Variant
-    ReDim valArray(1 To rowCount, 1 To colCount)
-    ReDim fmtArray(1 To rowCount, 1 To colCount)
     
-    Application.ScreenUpdating = False
     index = LBound(strArray)
-    For i = 1 To rowCount
-        For j = 1 To colCount
-            valArray(i, j) = strArray(index)
-            index = index + 1
-            fmtArray(i, j) = strArray(index)
-            index = index + 1
-        Next j
-    Next i
+    Application.ScreenUpdating = False
+
+    If lenF > 0 Then
+        Dim fmtArray() As String
+        ReDim fmtArray(1 To rowCountF, 1 To colCountF)
+    
+        For i = 1 To rowCountF
+            For j = 1 To colCountF
+                fmtArray(i, j) = strArray(index)
+                index = index + 1
+            Next j
+        Next i
+    
+        Dim RangeFmt As Range
+        Set RangeFmt = Range(Cells(rowBegF, colBegF), Cells(rowEndF, colEndF))
+        RangeFmt.NumberFormat = fmtArray
+    End If
+    
+    If lenV > 0 Then
+        Dim valArray() As Variant
+        ReDim valArray(1 To rowCountV, 1 To colCountV)
         
-    Dim TheRange As Range
-    Set TheRange = Range(Cells(rowBeg, colBeg), Cells(rowEnd, colEnd))
-    TheRange.Value = valArray
-    TheRange.NumberFormat = fmtArray
+        For i = 1 To rowCountV
+            For j = 1 To colCountV
+                valArray(i, j) = strArray(index)
+                index = index + 1
+            Next j
+        Next i
+    
+        Dim RangeVal As Range
+        Set RangeVal = Range(Cells(rowBegV, colBegV), Cells(rowEndV, colEndV))
+        RangeVal.Value = valArray
+    End If
     
     Application.ScreenUpdating = True
+    'SendCmdToMekko ("receieved data in " & Timer - t & " sec")
     GoTo EndSub
     
 ErrorHandling:
@@ -253,7 +291,7 @@ Sub CloseByMekko()
     
     doQuit = True
     For Each wb In Workbooks
-        If wb.Name <> "__MekkoExcel__.xlsm" Then
+        If wb.Name <> myName Then
             doQuit = False
         Else
             HideByMekko
@@ -264,15 +302,15 @@ Sub CloseByMekko()
 End Sub
 
 Private Function IsWorkbookVisible() As Boolean
-    IsWorkbookVisible = Workbooks("__MekkoExcel__.xlsm").Windows(1).Visible
+    IsWorkbookVisible = Workbooks(myName).Windows(1).Visible
 End Function
 
 Sub HideByMekko()
-    Workbooks("__MekkoExcel__.xlsm").Windows(1).Visible = False
+    Workbooks(myName).Windows(1).Visible = False
 End Sub
 
 Sub UnhideByMekko()
-    Workbooks("__MekkoExcel__.xlsm").Windows(1).Visible = True
+    Workbooks(myName).Windows(1).Visible = True
 End Sub
 
 Sub CleanupByMekko()
@@ -348,9 +386,14 @@ Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
                 prefix = c.PrefixCharacter
                 frml = ""
                 If c.HasFormula Then frml = c.Formula
+                On Error GoTo ErrorHandling
                 msg = msg & Addr & delim & cVal & delim & fmt & delim & prefix & delim & frml & Chr(10)
+ErrorHandling:
             End If
         Next
-        SendTextToMekko (msg)
+        
+        If Not msg = "" Then
+            SendTextToMekko (msg)
+        End If
     End If
 End Sub
