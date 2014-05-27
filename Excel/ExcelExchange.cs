@@ -77,6 +77,10 @@ namespace MGEditor
 
 		private static void ClearSession()
 		{
+			if ( session != null )
+				NSNotificationCenter.DefaultCenter.RemoveObserver (session);
+
+			session= null;
 			CellsArray= null;
 			CellsList= null;
 			minRow= numRow= 0;
@@ -99,10 +103,17 @@ namespace MGEditor
 
 		public static void StartSession(List<ExcelCellInfo> cells)
 		{
-			ClearSession ();
-			if (cells == null || cells.Count == 0)
-				//return;
+			if (cells == null) 
+			{
+				if (session != null) 
+				{
+					ExcelAppleScript.ReStartExcel ();
+					return;
+				}
 				cells = TestList ();
+			}
+
+			ClearSession ();
 
 			CellsList = new List<ExcelCellInfo> ();
 			foreach (ExcelCellInfo info in cells) {
@@ -162,9 +173,6 @@ namespace MGEditor
 
 		public static void StopSession()
 		{
-			if ( session != null )
-				NSNotificationCenter.DefaultCenter.RemoveObserver (session);
-
 			ClearSession ();
 			ExcelAppleScript.RunMacroAsync ("HideByMekko");
 			Console.Out.WriteLine ("Excel session stopped");

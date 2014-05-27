@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>14\Add-in Manager\LeoBook_HD:Users:leokuzn:Projects:Mekko:Mekko.xlam</key>
+	<string></string>
+	<key>14\File Aliases\Alias ID: 257</key>
+	<data>
+	AAAAAAGYAAIAAQpMZW9Cb29rX0hEAAAAAAAAAAAAAAAAAAAAAADO/Z4iSCsAAAF7eAMI
+	a2FrYXNoa2EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+	AAAAAAAAAAAAAAAAAXt90c+ZbGwAAAAAAAAAAAAEAAYAAAkgAAAAAAAAAAAAAAAAAAAA
+	BU1la2tvAAAQAAgAAM795HIAAAARAAgAAM+ZpKwAAAABABQBe3gDABdPuAAXT1gAFzGj
+	ABcxoAACAEhMZW9Cb29rX0hEOlVzZXJzOgBsZW9rdXpuOgBMaWJyYXJ5OgBBcHBsaWNh
+	dGlvbiBTdXBwb3J0OgBNZWtrbzoAa2FrYXNoa2EADgASAAgAawBhAGsAYQBzAGgAawBh
+	AA8AFgAKAEwAZQBvAEIAbwBvAGsAXwBIAEQAEgA4VXNlcnMvbGVva3V6bi9MaWJyYXJ5
+	L0FwcGxpY2F0aW9uIFN1cHBvcnQvTWVra28va2FrYXNoa2EAEwABLwAAFQACAA7//wAA
+	</data>
+	<key>14\File Aliases\Alias ID: 258</key>
+	<data>
+	AAAAAAFMAAIAAQpMZW9Cb29rX0hEAAAAAAAAAAAAAAAAAAAAAADO/Z4iSCsAAAAXMaMJ
+	RG9jdW1lbnRzAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+	AAAAAAAAAAAAAAAAABdHtsww23EAAAAAAAAAAAAEAAMAAAkgAAAAAAAAAAAAAAAAAAAA
+	B2xlb2t1em4AABAACAAAzv3kcgAAABEACAAAzDETsQAAAAEACAAXMaMAFzGgAAIAJExl
+	b0Jvb2tfSEQ6VXNlcnM6AGxlb2t1em46AERvY3VtZW50cwAOABQACQBEAG8AYwB1AG0A
+	ZQBuAHQAcwAPABYACgBMAGUAbwBCAG8AbwBrAF8ASABEABIAF1VzZXJzL2xlb2t1em4v
+	RG9jdW1lbnRzAAATAAEvAAAVAAIADv//AAA=
+	</data>
+	<key>14\Microsoft Excel\ACBalloonShow</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\AutoConvertDate</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\AutoFormatHyperlinks</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\AutoRecoverEnabled</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\AutoRecoverTime</key>
+	<integer>10</integer>
+	<key>14\Microsoft Excel\Automation</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\CRAutoCheck</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\CRNeverShow</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\CRNeverShow2</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\CharWaitTypeAhead </key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\DefFileMRU</key>
+	<integer>10</integer>
+	<key>14\Microsoft Excel\Default Chart</key>
+	<string>Standard:1,1</string>
+	<key>14\Microsoft Excel\EnableLivePreview</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\ErrChkBackground</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\ErrChkIndiColor</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\ErrChkMask</key>
+	<integer>383</integer>
+	<key>14\Microsoft Excel\ExtendList</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\Font</key>
+	<string>Body Font,12</string>
+	<key>14\Microsoft Excel\FormulaBuilderSize</key>
+	<integer>140</integer>
+	<key>14\Microsoft Excel\FunctionAutoComplete </key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\FunctionTypeAhead </key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\Hide Welcome Window</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\HideExtension</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\ListAutoCreateCalcCol</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\ListAutoExpand</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\MRUFuncs</key>
+	<string>4,5,0,7,6,1,15,345,59,12</string>
+	<key>14\Microsoft Excel\Maximized</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\MeasurementUnit</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\MoveEnterDir</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\MsoTbCust</key>
+	<integer>8</integer>
+	<key>14\Microsoft Excel\Options3</key>
+	<integer>64</integer>
+	<key>14\Microsoft Excel\Options5</key>
+	<integer>1153</integer>
+	<key>14\Microsoft Excel\PLVRuler</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\RibbonGreen</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\RibbonOpenAtStartUp</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\RibbonShow</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\RibbonShowGroupTitles</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\SearchFunctionsMRUCount</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\SheetView</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\SortBehavior</key>
+	<integer>0</integer>
+	<key>14\Microsoft Excel\StickyPtX</key>
+	<integer>385</integer>
+	<key>14\Microsoft Excel\StickyPtY</key>
+	<integer>509</integer>
+	<key>14\Microsoft Excel\StructureListSelection</key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\ThresholdForChangingChartStyle</key>
+	<integer>2000</integer>
+	<key>14\Microsoft Excel\WaitTypeAhead </key>
+	<integer>1</integer>
+	<key>14\Microsoft Excel\count</key>
+	<integer>0</integer>
+	<key>14\Ribbon (Normal View)\Enabled Optional Tabs</key>
+	<array>
+		<string>VbTb</string>
+	</array>
+	<key>14\Toolbars\Embed_TBID_10</key>
+	<true/>
+	<key>14\Toolbars\HeightHint</key>
+	<integer>32</integer>
+	<key>14\Toolbars\Show_HIToolbar</key>
+	<true/>
+	<key>14\Toolbox:Effects\AutoTrigger</key>
+	<false/>
+	<key>14\Toolbox:Effects\FadeTransparency</key>
+	<integer>67</integer>
+	<key>14\Toolbox:Effects\TransitionEffect</key>
+	<integer>1</integer>
+	<key>14\Toolbox:Effects\TriggerAction</key>
+	<integer>2</integer>
+	<key>14\Toolbox:Effects\TriggerDelay</key>
+	<integer>5</integer>
+	<key>14\Toolbox\CSAnimationEffect</key>
+	<integer>1</integer>
+	<key>14\Toolbox\LastClientID</key>
+	<integer>1481401954</integer>
+	<key>14\Toolbox\WindowLeft</key>
+	<integer>1335</integer>
+	<key>14\Toolbox\WindowTop</key>
+	<integer>192</integer>
+	<key>14\Toolbox\WindowVis</key>
+	<false/>
+	<key>NSNavBrowserPreferedColumnContentWidth</key>
+	<real>186</real>
+	<key>NSNavLastCurrentDirectory:ChooseFolder:0</key>
+	<string>~/Library</string>
+	<key>NSNavLastCurrentDirectory:GetFile:2004</key>
+	<string>~/Library</string>
+	<key>NSNavLastCurrentDirectory:GetFile:2005</key>
+	<string>~/Projects/KMA</string>
+	<key>NSNavLastCurrentDirectory:PutFile:0</key>
+	<string>~/Documents</string>
+	<key>NSNavLastCurrentDirectory:PutFile:2100</key>
+	<string>~/Documents</string>
+	<key>NSNavLastRootDirectory:ChooseFolder:0</key>
+	<string>~/Library</string>
+	<key>NSNavLastRootDirectory:GetFile:2004</key>
+	<string>~/Library</string>
+	<key>NSNavLastRootDirectory:GetFile:2005</key>
+	<string>~/Projects/KMA</string>
+	<key>NSNavLastRootDirectory:PutFile:0</key>
+	<string>~/Documents</string>
+	<key>NSNavLastRootDirectory:PutFile:2100</key>
+	<string>~/Documents</string>
+	<key>NSNavPanelExpandedSizeForOpenMode:GetFile:2004</key>
+	<string>{888, 797}</string>
+	<key>NSNavPanelExpandedSizeForSaveMode:PutFile:2100</key>
+	<string>{712, 580}</string>
+	<key>NSNavPanelExpandedStateForSaveMode</key>
+	<true/>
+	<key>NSTableView Columns NSNavOutlineColumnSettings.v1</key>
+	<array>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErC2Rpc3BsYXlOYW1lhg==
+		</data>
+		<string>434</string>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErB21vZERhdGWG
+		</data>
+		<string>88</string>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErDGNyZWF0aW9uRGF0ZYY=
+		</data>
+		<string>95</string>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErDmxhc3RPcGVuZWREYXRlhg==
+		</data>
+		<string>95</string>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErE2tpbmRXaXRob3V0UGxhdGZvcm2G
+		</data>
+		<string>62</string>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErDHNob3J0VmVyc2lvboY=
+		</data>
+		<string>62</string>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErCWxhYmVsTmFtZYY=
+		</data>
+		<string>62</string>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErDHBoeXNpY2FsU2l6ZYY=
+		</data>
+		<string>60</string>
+	</array>
+	<key>NSTableView Hidden Columns NSNavOutlineColumnSettings.v1</key>
+	<array>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErDGNyZWF0aW9uRGF0ZYY=
+		</data>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErDmxhc3RPcGVuZWREYXRlhg==
+		</data>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErE2tpbmRXaXRob3V0UGxhdGZvcm2G
+		</data>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErDHNob3J0VmVyc2lvboY=
+		</data>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErCWxhYmVsTmFtZYY=
+		</data>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErDHBoeXNpY2FsU2l6ZYY=
+		</data>
+	</array>
+	<key>NSTableView Sort Ordering NSNavOutlineColumnSettings.v1</key>
+	<array>
+		<data>
+		BAtzdHJlYW10eXBlZIHoA4QBQISEhAhOU1N0cmluZwGEhAhOU09iamVjdACF
+		hAErC2Rpc3BsYXlOYW1lhg==
+		</data>
+		<true/>
+	</array>
+	<key>PMPrintingExpandedStateForPrint</key>
+	<true/>
+</dict>
+</plist>

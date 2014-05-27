@@ -26,16 +26,15 @@ namespace MGEditor
 
 		public static bool StartExcel()
 		{
-			List<string> cmdLines = new List<string> ();
-			cmdLines.Add (CreateMacroWithArguments ("SetMekkoReceiverPort", ExcelDataServer.port.ToString ()));
-			cmdLines.Add (CreateMacroWithArguments ("HideByMekko"));
-			cmdLines.Add (CreateMacroWithArguments ("CleanupByMekko"));
-			cmdLines.Add (CreateMacroWithArguments ("UnhideByMekko"));
+			string script= Path.Combine( AppDelegate.GetResourcesDirectory(), "StartExcel.applescript");
+			script += " " + ExcelDataServer.port.ToString ();
+			return RunOsaScript (script);
+		}
 
-			LogScriptCommands = true;
-			bool result= Run (cmdLines.ToArray());
-			LogScriptCommands = false;
-			return result;
+		public static bool ReStartExcel()
+		{
+			string script= Path.Combine( AppDelegate.GetResourcesDirectory(), "StartExcel.applescript");
+			return RunOsaScript (script);
 		}
 
 		public static string CreateMacroWithArguments(string macroName, params string [] Arguments)
@@ -120,7 +119,11 @@ namespace MGEditor
 				}
 			}
 			script += " -e 'end tell'";
+			return RunOsaScript(script);
+		}
 
+		public static bool RunOsaScript(string script)
+		{
 			System.Diagnostics.Process proc = new System.Diagnostics.Process();
 
 			proc.EnableRaisingEvents=false; 
@@ -142,9 +145,12 @@ namespace MGEditor
 			string [] stdOut= procOutput.ToString().Split(stringSeparators, StringSplitOptions.None);
 			if (stdError == "")
 				return true;
-			System.Console.Out.WriteLine ("osascript {0}", script);
-			System.Console.Out.WriteLine ("\n--- stderr----\n{0}", stdError);
-			System.Console.Out.WriteLine ("\n--- stdout----\n{0}", stdOut);
+			if (script.IndexOf ("CloseByMekko") == -1) 
+			{
+				System.Console.Out.WriteLine ("osascript {0}", script);
+				System.Console.Out.WriteLine ("\n--- stderr----\n{0}", stdError);
+				System.Console.Out.WriteLine ("\n--- stdout----\n{0}", stdOut);
+			}
 			return false;
 		}
 
