@@ -88,18 +88,7 @@ namespace MGEditor
 			timeStartSession = DateTime.Now.Ticks;
 		}
 
-		private static void RebuildSessionArray()
-		{
-			CellsArray = ToCellArray(CellsList, out minRow, out minCol);
-			if (CellsArray == null) 
-			{
-				ClearSession ();
-				return;
-			}
 
-			numRow = CellsArray.GetLength (0);
-			numCol = CellsArray.GetLength (1);
-		}
 
 		public static void StartSession(List<ExcelCellInfo> cells)
 		{
@@ -119,12 +108,18 @@ namespace MGEditor
 			foreach (ExcelCellInfo info in cells) {
 				CellsList.Add (info);
 			}
-			RebuildSessionArray ();
+
+			CellsArray= ExcelCellsArray.RebuildSessionArray (CellsList, out minRow, out minCol, out numRow, out numCol);
+			if (CellsList == null) 
+			{
+				ClearSession ();
+				return;
+			}
 
 			string data = "";
 
 			int minRowFmt=0, minColFmt=0, numRowFmt=0, numColFmt=0;
-			string[,] fmtArray= ToFormatArray(CellsList, out minRowFmt, out minColFmt);
+			string[,] fmtArray= ExcelCellsArray.ToFormatArray(CellsList, out minRowFmt, out minColFmt);
 			if (fmtArray != null) 
 			{
 				numRowFmt = fmtArray.GetLength (0);
@@ -138,7 +133,7 @@ namespace MGEditor
 			}
 
 			int minRowVal=0, minColVal=0, numRowVal=0, numColVal=0;
-			string[,] valArray= ToValueArray(CellsList, out minRowVal, out minColVal);
+			string[,] valArray= ExcelCellsArray.ToValueArray(CellsList, out minRowVal, out minColVal);
 			if (valArray != null) 
 			{
 				numRowVal = valArray.GetLength (0);
@@ -271,7 +266,7 @@ namespace MGEditor
 			}
 
 			CellsList= null;
-			CellsList= ToCellList(CellsArray, minRow, minCol);
+			CellsList= ExcelCellsArray.ToCellList(CellsArray, minRow, minCol);
 			CellsArray = null;
 			if (cellsAdded.Count > 0) 
 			{
@@ -279,7 +274,7 @@ namespace MGEditor
 					CellsList.Add (cellInfo);
 				}
 			}
-			RebuildSessionArray ();
+			CellsArray= ExcelCellsArray.RebuildSessionArray (CellsList, out minRow, out minCol, out numRow, out numCol);
 
 
 			if (cellsAdded.Count + cellsChanged.Count > 0) 
@@ -298,188 +293,7 @@ namespace MGEditor
 
 			data.Dispose ();
 		}
-
-		#region Array Helper Functions
-		//---------------------------------
-		public static string[,] ToFormatArray(List<ExcelCellInfo> cells, out int minRow, out int minCol)
-		{
-			if (cells == null || cells.Count == 0) {
-				minRow = minCol = 0;
-				return null;
-			}
-
-			minRow = minCol = int.MaxValue;
-			int maxRow, maxCol;
-			maxRow = maxCol = 0;
-			bool found = false;
-
-			foreach (ExcelCellInfo info in cells) 
-			{
-				if (info.format != "") 
-				{
-					found = true;
-					if (info.row > maxRow)
-						maxRow = info.row;
-					if (info.column > maxCol)
-						maxCol = info.column; 
-					if (info.row < minRow)
-						minRow = info.row;
-					if (info.column < minCol)
-						minCol = info.column; 
-				}
-			}
-			if (!found) {
-				minRow = minCol = 0;
-				return null;
-			}
-
-			int numRow = maxRow - minRow + 1;
-			int numCol = maxCol - minCol + 1;
-			string[,] fmtArray = new string[numRow, numCol];
-
-			for (int iR = 0; iR < numRow; iR++)
-				for (int iC = 0; iC < numCol; iC++)
-					fmtArray[iR, iC]= ""; 
-
-			foreach (ExcelCellInfo info in cells) 
-			{
-				if (info.format != "") 
-				{
-					int iR = info.row - minRow;
-					int iC = info.column - minCol;
-					fmtArray[iR, iC]= info.format;
-				}
-			}
-
-			return fmtArray;
-		}
-
-		//---------------------------------
-		public static string[,] ToValueArray(List<ExcelCellInfo> cells, out int minRow, out int minCol)
-		{
-			if (cells == null || cells.Count == 0) {
-				minRow = minCol = 0;
-				return null;
-			}
-
-			minRow = minCol = int.MaxValue;
-			int maxRow, maxCol;
-			maxRow = maxCol = 0;
-			bool found = false;
-
-			foreach (ExcelCellInfo info in cells) 
-			{
-				if (info.content != "" || info.formula != "") 
-				{
-					found = true;
-					if (info.row > maxRow)
-						maxRow = info.row;
-					if (info.column > maxCol)
-						maxCol = info.column; 
-					if (info.row < minRow)
-						minRow = info.row;
-					if (info.column < minCol)
-						minCol = info.column; 
-				}
-			}
-			if (!found) {
-				minRow = minCol = 0;
-				return null;
-			}
-
-			int numRow = maxRow - minRow + 1;
-			int numCol = maxCol - minCol + 1;
-			string[,] valueArray = new string[numRow, numCol];
-
-			for (int iR = 0; iR < numRow; iR++)
-				for (int iC = 0; iC < numCol; iC++)
-					valueArray[iR, iC]= ""; 
-
-			foreach (ExcelCellInfo info in cells) 
-			{
-				if (info.content != "" || info.formula != "") 
-				{
-					int iR = info.row - minRow;
-					int iC = info.column - minCol;
-					if (info.formula != "") {
-						valueArray[iR, iC]= info.formula;
-					}
-					else{
-						valueArray[iR, iC]= info.prefix + info.content;
-					}
-				}
-			}
-
-			return valueArray;
-		}
-
-		//---------------------------------
-		public static ExcelCell[,] ToCellArray(List<ExcelCellInfo> cells, out int minRow, out int minCol)
-		{
-			if (cells == null || cells.Count == 0) {
-				minRow = minCol = 0;
-				return null;
-			}
-
-			minRow = minCol = int.MaxValue;
-			int maxRow, maxCol;
-			maxRow = maxCol = 0;
-
-			foreach (ExcelCellInfo info in cells) 
-			{
-				if (info.row > maxRow)
-					maxRow = info.row;
-				if (info.column > maxCol)
-					maxCol = info.column; 
-				if (info.row < minRow)
-					minRow = info.row;
-				if (info.column < minCol)
-					minCol = info.column; 
-			}
-
-			int numRow = maxRow - minRow + 1;
-			int numCol = maxCol - minCol + 1;
-			ExcelCell[,] CellsArray = new ExcelCell[numRow, numCol];
-
-			for (int iR = 0; iR < numRow; iR++)
-				for (int iC = 0; iC < numCol; iC++)
-					CellsArray[iR, iC]=new ExcelCell (); 
-
-			foreach (ExcelCellInfo info in cells) 
-			{
-				int iR = info.row - minRow;
-				int iC = info.column - minCol;
-				CellsArray[iR, iC].Fill(info.content, info.format, info.prefix, info.formula);
-			}
-
-			return CellsArray;
-		}
-
-		//---------------------------------
-		public static List<ExcelCellInfo> ToCellList(ExcelCell[,] cellsArray, int minRow, int minCol)
-		{
-			if (cellsArray == null || minRow < 1 || minCol < 1)
-				return null;
-
-			List<ExcelCellInfo> cells= new List<ExcelCellInfo>();
-
-			int numRow = cellsArray.GetLength (0);
-			int numCol = cellsArray.GetLength (1);
-			for (int iR = 0; iR < numRow; iR++) 
-			{
-				for (int iC = 0; iC < numCol; iC++) 
-				{
-					ExcelCell cell = cellsArray [iR, iC];
-					if (cell.content != "" || cell.format != "" || cell.formula != "") {
-						ExcelCellInfo cellInfo = new ExcelCellInfo (minRow + iR, minCol + iC, cell.content, cell.format, cell.prefix, cell.formula);
-						cells.Add (cellInfo);
-					}
-				}
-			}
-
-			return cells;
-		}
-		#endregion
+			
 	}
 }
 

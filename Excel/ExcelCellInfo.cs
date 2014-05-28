@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MGEditor
 {
-	public class ExcelCell
+	public class ExcelCell : Object
 	{
 		public string content { get; set; }
 		public string format  { get; set; }
@@ -37,8 +37,65 @@ namespace MGEditor
 		{
 			Fill (nContent, nFormat, nPrefix, nFormula);
 		}
+
+		public static bool operator ==(ExcelCell x, ExcelCell y)
+		{
+			return x.Equals (y);
+		}
+		public static bool operator !=(ExcelCell x, ExcelCell y)
+		{
+			return !x.Equals (y);
+		}
+
+
+		#region operators == and != handles
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				int hash = 17;
+				hash = hash * 23 + (prefix + content).GetHashCode();
+				hash = hash * 23 + formula.GetHashCode();
+				hash = hash * 23 + format.GetHashCode();
+				return hash;
+			}
+		}
+		public override bool Equals(object otherObj)
+		{
+			ExcelCell other = otherObj as ExcelCell;
+			if (this == null || other == null)
+				return false;
+
+			if (formula != "" || other.formula != "") 
+			{
+				if (formula != other.formula)
+					return false;
+				if (format != "" || other.format != "") 
+				{
+					if (format != other.format)
+						return false;
+				}
+				return true;
+			}
+			if (content != "" || other.content != "") 
+			{
+				if  (prefix + content != other.prefix + other.content)
+					return false;
+			}
+			if (format != "" || other.format != "") 
+			{
+				return format == other.format;
+			}
+			else
+				return true;
+		}
+		#endregion
 	}
 
+
+
+
+	#region ExcelCellInfo
 	public class ExcelCellInfo : ExcelCell
 	{
 		public int row { get; set; }
@@ -119,7 +176,12 @@ namespace MGEditor
 					Console.Out.WriteLine ("");
 			}
 		}
-			
+
+		//public static bool operator ==(ExcelCell x, ExcelCell y)
+		//{
+		//}
+
 	}
+	#endregion
 }
 
