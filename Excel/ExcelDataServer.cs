@@ -22,7 +22,10 @@ namespace MGEditor
 		private static string codePrefRight = ((char)6).ToString ();
 		private static string codePrefBlank = ((char)7).ToString ();
 		private static string codeCommand   = ((char)8).ToString ();
-		public static string notificationName{ get{ return "ExcelCellsChanged"; } }
+
+		public static string notificationExcelChanged{ get{ return "ExcelCellsChanged"; } }
+		public static string notificationExcelClosed { get{ return "ExcelClosed"; } }
+		public static string notificationExcelEmpty  { get{ return "ExcelEmpty"; } }
 
 		public List<ExcelCellInfo> dataList;
 
@@ -33,10 +36,10 @@ namespace MGEditor
 
 		public static void Post(string str)
 		{
+			ExcelDataReceiver data = new ExcelDataReceiver();
+
 			if (str != "") 
 			{
-				ExcelDataReceiver data = new ExcelDataReceiver();
-
 				string content = str.Replace (codeDollar, "$");
 				content = content.Replace (codePound, "#");
 				content = content.Replace (codePrefLeft, "\'");
@@ -48,7 +51,7 @@ namespace MGEditor
 					if (content.Length == 1 || (content.Length >= 6 && content.Substring (1) == "close")) 
 					{
 						DispatchQueue.MainQueue.DispatchAsync (() => {
-							NSNotificationCenter.DefaultCenter.PostNotificationName (notificationName, data, null);
+							NSNotificationCenter.DefaultCenter.PostNotificationName (notificationExcelClosed, data, null);
 						});
 					}
 					else
@@ -64,13 +67,14 @@ namespace MGEditor
 							data.dataList.Add (cellInfo);
 					}
 				}
-				if (data.dataList.Count > 0) 
-				{
-					DispatchQueue.MainQueue.DispatchAsync (() => {
-						NSNotificationCenter.DefaultCenter.PostNotificationName (notificationName, data, null);
-					});
-				}
 			}
+
+			string notificationName = data.dataList.Count > 0 ? notificationExcelChanged : notificationExcelEmpty;
+
+			DispatchQueue.MainQueue.DispatchAsync (() => {
+				NSNotificationCenter.DefaultCenter.PostNotificationName (notificationName, data, null);
+			});
+
 		}
 	}
 	#endregion

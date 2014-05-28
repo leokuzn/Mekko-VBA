@@ -1,6 +1,7 @@
 ﻿using System;
 using MonoMac.Foundation;
 using MonoMac.AppKit;
+using MonoMac.CoreFoundation;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
@@ -8,23 +9,36 @@ using System.Threading;
 using System.ComponentModel;
 using System.Collections.Generic;
 
+
 namespace MGEditor
 {
 	public static class ExcelExchange
 	{
-		private static NSObject session= null;
+		private static NSObject observExcelChanges= null;
+		private static NSObject observExcelClosed= null;
+		private static NSObject observExcelEmpty= null;
 
 		private static ExcelCell[,] CellsArray= null;
 		private static List<ExcelCellInfo> CellsList= null;
-
 		private static int minRow= 0;
 		private static int minCol= 0;
 		private static int numRow= 0;
 		private static int numCol= 0;
+
+		private static ExcelCell[,] CellsArrayInput= null;
+		private static List<ExcelCellInfo> CellsListInput= null;
+		private static int minRowInput= 0;
+		private static int minColInput= 0;
+		private static int numRowInput= 0;
+		private static int numColInput= 0;
+
 		private static long timeStartSession;
 		private static long timeOpenExcel;
 		private static long timeFirstRespond;
-		private static bool firstRun= true;
+
+		private static bool firstRun= false;
+		private static bool takeFromExcel= false;
+		private static bool printDebugOutput= true;
 
 
 		public static List<ExcelCellInfo> TestList()
@@ -75,39 +89,109 @@ namespace MGEditor
 			return myCells;
 		}
 
-		private static void ClearSession()
+		private static void StopSessionObservers()
 		{
-			if ( session != null )
-				NSNotificationCenter.DefaultCenter.RemoveObserver (session);
+			if ( observExcelChanges != null )
+				NSNotificationCenter.DefaultCenter.RemoveObserver (observExcelChanges);
+			if ( observExcelClosed != null )
+				NSNotificationCenter.DefaultCenter.RemoveObserver (observExcelClosed);
+			if ( observExcelEmpty != null )
+				NSNotificationCenter.DefaultCenter.RemoveObserver (observExcelEmpty);
+			observExcelChanges= null;
+			observExcelClosed = null;
+			observExcelEmpty = null;
+		}
 
-			session= null;
+		private static void StartSessionObservers(bool checkEmptyRespond=false)
+		{
+			observExcelChanges= NSNotificationCenter.DefaultCenter.AddObserver (ExcelDataReceiver.notificationExcelChanged, OnExcelTableChanged);
+			observExcelClosed = NSNotificationCenter.DefaultCenter.AddObserver (ExcelDataReceiver.notificationExcelClosed,  OnExcelTableClosed);
+
+			if (checkEmptyRespond)
+				observExcelEmpty = NSNotificationCenter.DefaultCenter.AddObserver (ExcelDataReceiver.notificationExcelEmpty, OnExcelTableChanged);
+			else 
+			{
+				if ( observExcelEmpty != null )
+					NSNotificationCenter.DefaultCenter.RemoveObserver (observExcelEmpty);
+				observExcelEmpty = null;
+			}
+		}
+
+		private static void ClearSessionData()
+		{
 			CellsArray= null;
 			CellsList= null;
 			minRow= numRow= 0;
 			minCol= numCol= 0;
+
 			timeStartSession = DateTime.Now.Ticks;
+		}
+
+		private static void ClearInputData()
+		{
+			CellsArrayInput= null;
+			CellsListInput= null;
+			minRowInput= numRowInput= 0;
+			minColInput= numColInput= 0;
+		}
+
+		private static void UseInput()
+		{
+			ClearSessionData ();
+			CellsArray = CellsArrayInput;
+			CellsList = CellsListInput;
+			minRow = minRowInput;
+			minCol = minColInput;
+			numRow = numRowInput;
+			numCol = numColInput;
+			ClearInputData ();
+		}
+
+		public static void StopSession()
+		{
+			StopSessionObservers ();
+			ClearInputData ();
+			ClearSessionData ();
+			ExcelAppleScript.RunMacroAsync ("HideByMekko");
+			if (printDebugOutput)
+				Console.Out.WriteLine ("Excel session stopped");
 		}
 
 
 
+
+
+		//-------------------------------------
 		public static void StartSession(List<ExcelCellInfo> cellsInput)
 		{
-			if (cellsInput == null) 
+			if (cellsInput == null)
 				cellsInput = TestList ();
 
-			if (session != null && CellsArray != null && CellsList != null) 
-			{
-				int minRowTmp, minColTmp, numRowTmp, numColTmp;
-				ExcelCell[,] cellsArrayTmp = ExcelCellsArray.RebuildSessionArray (cellsInput, out minRowTmp, out minColTmp, out numRowTmp, out numColTmp);
+			takeFromExcel= false;
+			firstRun= false;
 
-				if (minRowTmp == minRow && minColTmp == minCol && numRowTmp == numRow && numColTmp == numCol) 
+			CellsListInput = new List<ExcelCellInfo> ();
+			foreach (ExcelCellInfo info in cellsInput) {
+				CellsListInput.Add (info);
+			}
+			CellsListInput.Sort ();
+
+			CellsArrayInput = ExcelCellsArray.RebuildSessionArray ( cellsInput, 
+																	out minRowInput, 
+																	out minColInput, 
+																	out numRowInput, 
+																	out numColInput);
+
+			if (observExcelChanges != null && CellsArray != null && CellsList != null) 
+			{
+				if (minRowInput == minRow && minColInput == minCol && numRowInput == numRow && numColInput == numCol) 
 				{
 					bool theSame = true;
 					for (int iR = 0; iR < numRow; iR++) 
 					{
 						for (int iC = 0; iC < numCol; iC++) 
 						{
-							if (CellsArray [iR, iC] != cellsArrayTmp [iR, iC]) {
+							if (CellsArray [iR, iC] != CellsArrayInput [iR, iC]) {
 								theSame = false;
 								break;
 							}
@@ -116,29 +200,56 @@ namespace MGEditor
 							break;
 					}
 
-					cellsArrayTmp = null;
-					if (theSame) {
-						ExcelAppleScript.ReStartExcel ();
+					if (theSame) 
+					{
+						if (printDebugOutput)
+							Console.Out.WriteLine ("Old session and input data are the same");
+						StopSessionObservers ();
+						ClearInputData ();
+						StartSessionObservers ();
+						ExcelAppleScript.StartExcel ();
+						return;
+					} 
+					else 
+					{
+						if (printDebugOutput)
+							Console.Out.WriteLine ("Old session and input data are different");
+						StopSessionObservers ();
+						ClearSessionData ();
+						DispatchQueue.MainQueue.DispatchAsync (() => {
+							CreateNewSession();
+						});
 						return;
 					}
 				}
-			}
-
-
-			ClearSession ();
-
-			CellsList = new List<ExcelCellInfo> ();
-			foreach (ExcelCellInfo info in cellsInput) {
-				CellsList.Add (info);
-			}
-
-			CellsArray= ExcelCellsArray.RebuildSessionArray (CellsList, out minRow, out minCol, out numRow, out numCol);
-			if (CellsList == null) 
+			} 
+			else 
 			{
-				ClearSession ();
+				if (printDebugOutput)
+					Console.Out.WriteLine ("No old session. Read data from Excel");
+				StopSessionObservers ();
+				ClearSessionData ();
+				takeFromExcel= true;
+				StartSessionObservers (checkEmptyRespond: true);
+				ExcelAppleScript.StartExcel ("SendContentToMekko");
+				return;
+			}
+		}
+
+
+		//-------------------------------------
+		public static void CreateNewSession()
+		{
+			if (CellsArrayInput == null || CellsListInput == null || minRowInput == 0 || minColInput == 0 || numRowInput == 0 || numColInput == 0) {
+				StopSession ();
 				return;
 			}
 
+			takeFromExcel = false;
+			firstRun = false;
+
+			StopSessionObservers ();
+			UseInput ();
 			string data = "";
 
 			int minRowFmt=0, minColFmt=0, numRowFmt=0, numColFmt=0;
@@ -169,13 +280,14 @@ namespace MGEditor
 				}
 			}
 
-			session= NSNotificationCenter.DefaultCenter.AddObserver (ExcelDataReceiver.notificationName, OnExcelTableChanged);
-			ExcelAppleScript.StartExcel ();
+			StartSessionObservers ();
+			ExcelAppleScript.StartExcel ("CleanupByMekko");
 			firstRun = true;
 			timeOpenExcel = DateTime.Now.Ticks;
 
 			long elapsedTime = (timeOpenExcel - timeStartSession)/TimeSpan.TicksPerMillisecond;
-			Console.Out.WriteLine ("Excel session started {0} sec", elapsedTime/1000.0);
+			if (printDebugOutput)
+				Console.Out.WriteLine ("Excel session started {0} sec", elapsedTime/1000.0);
 
 			ExcelDataSender dataSender = new ExcelDataSender ("SetRangeValueByMekko", 
 											minRowFmt.ToString (), 
@@ -189,73 +301,75 @@ namespace MGEditor
 			dataSender.Send (data);
 		}
 
-		public static void StopSession()
+		//-------------------------------------
+		private static void OnExcelTableClosed(NSNotification notification)
 		{
-			ClearSession ();
-			ExcelAppleScript.RunMacroAsync ("HideByMekko");
-			Console.Out.WriteLine ("Excel session stopped");
+			StopSession ();
+			return;
 		}
 
+		//-------------------------------------
 		private static void OnExcelTableChanged(NSNotification notification)
 		{
 			ExcelDataReceiver data = notification.Object as ExcelDataReceiver;
 
-			if (data.dataList.Count == 0) {
-				StopSession ();
+			if (data.dataList.Count == 0) 
+			{
+				if (printDebugOutput)
+					Console.Out.WriteLine ("No data exist on Excel");
+				CreateNewSession ();
+				return;
+			}
+			if ( observExcelEmpty != null )
+				NSNotificationCenter.DefaultCenter.RemoveObserver (observExcelEmpty);
+			observExcelEmpty = null;
+
+			if (takeFromExcel) // Session data is invalid. Compare Excel data and Input data
+			{
+				takeFromExcel = false;
+
+				if ( ExcelCellsArray.CompareListAndArray (data.dataList, CellsArrayInput, minRowInput, minColInput) ) 
+				{
+					if (printDebugOutput)
+						Console.Out.WriteLine ("Restore closed session");
+					UseInput ();
+				} 
+				else 
+				{
+					if (printDebugOutput)
+						Console.Out.WriteLine ("Excel and input data are different");
+					StopSessionObservers ();
+					ClearSessionData ();
+					DispatchQueue.MainQueue.DispatchAsync (() => {
+						CreateNewSession ();
+					});
+				}
 				return;
 			}
 
-			int maxRow = minRow + numRow - 1;
-			int maxCol = minCol + numCol - 1;
-
-
-			if (firstRun) 
+			if (firstRun) // First run after session data setted. Compare it with Excel data
 			{
 				timeFirstRespond = DateTime.Now.Ticks;
 
 				long elapsedTime = (timeFirstRespond - timeOpenExcel)/TimeSpan.TicksPerMillisecond;
-				Console.Out.WriteLine ("Session first respond time= {0} sec", elapsedTime/1000.0);
+				if (printDebugOutput)
+					Console.Out.WriteLine ("Session first respond time= {0} sec", elapsedTime/1000.0);
 
 				firstRun = false;
-
-				foreach (ExcelCellInfo cellInfo in data.dataList) 
+				if ( ExcelCellsArray.CompareListAndArray(data.dataList, CellsArray, minRow, minCol) != true)
 				{
-					int iR = cellInfo.row;
-					int iC = cellInfo.column;
-
-					if (iR < minRow || maxRow < iR || iC < minCol || maxCol < iC) 
-					{
+					if (printDebugOutput)
 						Console.Out.WriteLine ("Excel communication error");
-						StopSession ();
-						return;
-					}
-
-					ExcelCell cell = CellsArray [iR-minRow, iC-minCol];
-					if (cell.content != cellInfo.content) 
-					{
-						if (cell.content == "" && cellInfo.content != "" && cell.formula != "" && cell.formula == cellInfo.formula) 
-						{
-							cell.content = cellInfo.content;
-						} 
-						else 
-						{
-							Console.Out.WriteLine ("Excel communication error");
-							StopSession ();
-							return;
-						}
-					} 
-					else if ( cell.format != cellInfo.format || cell.formula != cellInfo.formula || cell.prefix != cellInfo.prefix )
-					{
-						System.Console.Out.WriteLine ("Excel communication error");
-						StopSession ();
-						return;
-					}
+					StopSession ();
 				}
 				return;
 			}
 
 			List<ExcelCellInfo> cellsAdded   = new List<ExcelCellInfo> ();
 			List<ExcelCellInfo> cellsChanged = new List<ExcelCellInfo> ();
+
+			int maxRow = minRow + numRow - 1;
+			int maxCol = minCol + numCol - 1;
 
 			foreach (ExcelCellInfo cellInfo in data.dataList)
 			{
@@ -297,10 +411,11 @@ namespace MGEditor
 					CellsList.Add (cellInfo);
 				}
 			}
+			CellsList.Sort ();
 			CellsArray= ExcelCellsArray.RebuildSessionArray (CellsList, out minRow, out minCol, out numRow, out numCol);
 
 
-			if (cellsAdded.Count + cellsChanged.Count > 0) 
+			if (printDebugOutput && cellsAdded.Count + cellsChanged.Count > 0) 
 			{
 				System.Console.Out.WriteLine ("------beg----------");
 				foreach (ExcelCellInfo cellInfo in cellsAdded) {
@@ -316,7 +431,6 @@ namespace MGEditor
 
 			data.Dispose ();
 		}
-			
 	}
 }
 

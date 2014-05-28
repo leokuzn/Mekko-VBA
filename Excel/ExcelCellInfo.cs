@@ -40,11 +40,11 @@ namespace MGEditor
 
 		public static bool operator ==(ExcelCell x, ExcelCell y)
 		{
-			return x.Equals (y);
+			return x.IsEqual (y);
 		}
 		public static bool operator !=(ExcelCell x, ExcelCell y)
 		{
-			return !x.Equals (y);
+			return !x.IsEqual (y);
 		}
 
 
@@ -62,10 +62,13 @@ namespace MGEditor
 		}
 		public override bool Equals(object otherObj)
 		{
-			if ( !(otherObj is ExcelCell) )
+			if (!(otherObj is ExcelCell))
 				return false;
-			ExcelCell other= otherObj as ExcelCell;
+			return this == (ExcelCell)otherObj;
+		}
 
+		private bool IsEqual(ExcelCell other)
+		{
 			if (formula != "" || other.formula != "") 
 			{
 				if (formula != other.formula)
@@ -96,7 +99,7 @@ namespace MGEditor
 
 
 	#region ExcelCellInfo
-	public class ExcelCellInfo : ExcelCell
+	public class ExcelCellInfo : ExcelCell,  IComparable
 	{
 		public int row { get; set; }
 		public int column { get; set; }
@@ -177,10 +180,25 @@ namespace MGEditor
 			}
 		}
 
-		//public static bool operator ==(ExcelCell x, ExcelCell y)
-		//{
-		//}
-
+		public int CompareTo(object obj)
+		{
+			ExcelCellInfo orderToCompare = obj as ExcelCellInfo;
+			if (orderToCompare.row < row )
+			{
+				return 1;
+			}
+			if (orderToCompare.row == row) 
+			{
+				if (orderToCompare.column < column)
+					return 1;
+				if (orderToCompare.column == column)
+					return 0;
+				else
+					return -1;
+			}
+			else
+				return -1;
+		}
 	}
 	#endregion
 }

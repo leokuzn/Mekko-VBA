@@ -71,6 +71,36 @@ namespace MGEditor
 			return fmtArray;
 		}
 
+		//-------------------------------------
+		public static bool CompareListAndArray(List<ExcelCellInfo> dataList, ExcelCell[,] cellsArray, int minRow, int minCol)
+		{
+			int numRow = cellsArray.GetLength (0);
+			int numCol = cellsArray.GetLength (1);
+			int maxRow = minRow + numRow - 1;
+			int maxCol = minCol + numCol - 1;
+
+			foreach (ExcelCellInfo cellInfo in dataList) 
+			{
+				int iR = cellInfo.row;
+				int iC = cellInfo.column;
+
+				if (iR < minRow || maxRow < iR || iC < minCol || maxCol < iC) 
+					return false;
+
+				ExcelCell cell = cellsArray [iR-minRow, iC-minCol];
+				if (cell.content != cellInfo.content) 
+				{
+					if (cell.content == "" && cellInfo.content != "" && cell.formula != "" && cell.formula == cellInfo.formula) 
+						cell.content = cellInfo.content;
+					else 
+						return false;
+				} 
+				else if ( cell.format != cellInfo.format || cell.formula != cellInfo.formula || cell.prefix != cellInfo.prefix )
+					return false;
+			}
+			return true;
+		}
+
 		//---------------------------------
 		public static string[,] ToValueArray(List<ExcelCellInfo> cells, out int minRow, out int minCol)
 		{

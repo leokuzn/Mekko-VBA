@@ -162,11 +162,13 @@ Private Sub SendTextToMekko(text As String)
         Dim msg As String
         Dim cmd As String
         
-        msg = Replace(text, "$", Chr(2))
-        msg = Replace(msg, "#", Chr(3))
-        msg = Replace(msg, "'", Chr(5))
-        msg = Replace(msg, """", Chr(6))
-        msg = Replace(msg, "\", Chr(7))
+        If Not text = "" Then
+            msg = Replace(text, "$", Chr(2))
+            msg = Replace(msg, "#", Chr(3))
+            msg = Replace(msg, "'", Chr(5))
+            msg = Replace(msg, """", Chr(6))
+            msg = Replace(msg, "\", Chr(7))
+        End If
         
         cmd = "do shell script ""echo '" & msg & Chr(4) & "' | nc 127.0.0.1 " & MekkoReceiverPort & """"
         
@@ -179,6 +181,41 @@ ErrorHandling:
 EndSub:
 End If
 
+End Sub
+
+'-----------------------------------------------------
+'    Send everything to Mekko
+'-----------------------------------------------------
+Sub SendContentToMekko()
+    If MekkoReceiverPort > 1024 Then
+
+        Dim KeyCells As Range
+        Set KeyCells = ActiveSheet.UsedRange
+    
+        Application.CalculateFull
+        
+        Dim msg As String, delim As String
+        delim = Chr(9)
+        msg = ""
+        
+        For Each c In ActiveSheet.UsedRange.Cells
+            If Not IsEmpty(c.Value) Then
+                Addr = c.Address(ReferenceStyle:=xlR1C1)
+                cVal = c.Value
+                fmt = c.NumberFormat
+                If fmt = "General" Then fmt = ""
+                prefix = c.PrefixCharacter
+                frml = ""
+                If c.HasFormula Then frml = c.Formula
+                On Error GoTo ErrorHandling
+                msg = msg & Addr & delim & cVal & delim & fmt & delim & prefix & delim & frml & Chr(10)
+ErrorHandling:
+            End If
+        Next
+        
+        SendTextToMekko (msg)
+    
+    End If
 End Sub
 
 '----------------------------------
@@ -366,34 +403,5 @@ End Sub
 '-----------------------------------------------------
 Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
     DebugTraceMsg ("SheetChange")
-    If MekkoReceiverPort > 1024 Then
-
-        Dim KeyCells As Range
-        Set KeyCells = ActiveSheet.UsedRange
-    
-        Application.CalculateFull
-        
-        Dim msg As String, delim As String
-        delim = Chr(9)
-        msg = ""
-        
-        For Each c In ActiveSheet.UsedRange.Cells
-            If Not IsEmpty(c.Value) Then
-                Addr = c.Address(ReferenceStyle:=xlR1C1)
-                cVal = c.Value
-                fmt = c.NumberFormat
-                If fmt = "General" Then fmt = ""
-                prefix = c.PrefixCharacter
-                frml = ""
-                If c.HasFormula Then frml = c.Formula
-                On Error GoTo ErrorHandling
-                msg = msg & Addr & delim & cVal & delim & fmt & delim & prefix & delim & frml & Chr(10)
-ErrorHandling:
-            End If
-        Next
-        
-        If Not msg = "" Then
-            SendTextToMekko (msg)
-        End If
-    End If
+    SendContentToMekko
 End Sub

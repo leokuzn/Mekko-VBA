@@ -24,16 +24,13 @@ namespace MGEditor
 			dataServer.Start ();
 		}
 
-		public static bool StartExcel()
+		public static bool StartExcel(string macro = "")
 		{
 			string script= Path.Combine( AppDelegate.GetResourcesDirectory(), "StartExcel.applescript");
 			script += " " + ExcelDataServer.port.ToString ();
-			return RunOsaScript (script);
-		}
-
-		public static bool ReStartExcel()
-		{
-			string script= Path.Combine( AppDelegate.GetResourcesDirectory(), "StartExcel.applescript");
+			if (macro != "") {
+				script += " " + macro;
+			}
 			return RunOsaScript (script);
 		}
 
