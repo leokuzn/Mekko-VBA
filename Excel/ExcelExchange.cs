@@ -90,22 +90,45 @@ namespace MGEditor
 
 
 
-		public static void StartSession(List<ExcelCellInfo> cells)
+		public static void StartSession(List<ExcelCellInfo> cellsInput)
 		{
-			if (cells == null) 
+			if (cellsInput == null) 
+				cellsInput = TestList ();
+
+			if (session != null && CellsArray != null && CellsList != null) 
 			{
-				if (session != null) 
+				int minRowTmp, minColTmp, numRowTmp, numColTmp;
+				ExcelCell[,] cellsArrayTmp = ExcelCellsArray.RebuildSessionArray (cellsInput, out minRowTmp, out minColTmp, out numRowTmp, out numColTmp);
+
+				if (minRowTmp == minRow && minColTmp == minCol && numRowTmp == numRow && numColTmp == numCol) 
 				{
-					ExcelAppleScript.ReStartExcel ();
-					return;
+					bool theSame = true;
+					for (int iR = 0; iR < numRow; iR++) 
+					{
+						for (int iC = 0; iC < numCol; iC++) 
+						{
+							if (CellsArray [iR, iC] != cellsArrayTmp [iR, iC]) {
+								theSame = false;
+								break;
+							}
+						}
+						if (!theSame)
+							break;
+					}
+
+					cellsArrayTmp = null;
+					if (theSame) {
+						ExcelAppleScript.ReStartExcel ();
+						return;
+					}
 				}
-				cells = TestList ();
 			}
+
 
 			ClearSession ();
 
 			CellsList = new List<ExcelCellInfo> ();
-			foreach (ExcelCellInfo info in cells) {
+			foreach (ExcelCellInfo info in cellsInput) {
 				CellsList.Add (info);
 			}
 

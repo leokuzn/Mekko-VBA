@@ -62,9 +62,9 @@ namespace MGEditor
 		}
 		public override bool Equals(object otherObj)
 		{
-			ExcelCell other = otherObj as ExcelCell;
-			if (this == null || other == null)
+			if ( !(otherObj is ExcelCell) )
 				return false;
+			ExcelCell other= otherObj as ExcelCell;
 
 			if (formula != "" || other.formula != "") 
 			{
