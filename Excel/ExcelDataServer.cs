@@ -63,7 +63,7 @@ namespace MGEditor
 				foreach (string strInfo in lines) {
 					if (strInfo != "") {
 						ExcelCellInfo cellInfo = new ExcelCellInfo (strInfo);
-						if (cellInfo.row > 0 && cellInfo.column > 0)
+						if (cellInfo.row > 0 && cellInfo.col > 0)
 							data.dataList.Add (cellInfo);
 					}
 				}

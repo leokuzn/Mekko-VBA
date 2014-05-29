@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Wizard2004;
 
 namespace MGEditor
 {
@@ -10,33 +11,19 @@ namespace MGEditor
 		public string prefix  { get; set; }
 		public string formula { get; set; }
 
-		public void Fill(string nContent, string nFormat, string nPrefix, string nFormula)
+		public void Fill(string nContent="", string nFormat="", string nPrefix="", string nFormula="")
 		{
 			content = nContent;
 			format  = nFormat;
 			prefix  = nPrefix;
-			formula = nFormula;
+			formula = nFormula.Trim();
+		}
+		public ExcelCell (string nContent="", string nFormat="", string nPrefix="", string nFormula="")
+		{
+			Fill(nContent, nFormat, nPrefix, nFormula);
 		}
 
-		public ExcelCell ()
-		{
-			Fill ("", "", "", "");
-		}
 
-		public ExcelCell (string nContent)
-		{
-			Fill (nContent, "", "", "");
-		}
-
-		public ExcelCell (string nContent, string nFormat)
-		{
-			Fill (nContent, nFormat, "", "");
-		}
-
-		public ExcelCell (string nContent, string nFormat, string nPrefix, string nFormula)
-		{
-			Fill (nContent, nFormat, nPrefix, nFormula);
-		}
 
 		public static bool operator ==(ExcelCell x, ExcelCell y)
 		{
@@ -67,7 +54,7 @@ namespace MGEditor
 			return this == (ExcelCell)otherObj;
 		}
 
-		private bool IsEqual(ExcelCell other)
+		public bool IsEqual(ExcelCell other)
 		{
 			if (formula != "" || other.formula != "") 
 			{
@@ -102,39 +89,41 @@ namespace MGEditor
 	public class ExcelCellInfo : ExcelCell,  IComparable
 	{
 		public int row { get; set; }
-		public int column { get; set; }
+		public int col { get; set; }
 
 
-		public ExcelCellInfo () : base()
-		{
-			row = -1;
-			column = -1;
-		}
-
-		public ExcelCellInfo (int nRow, int nColumn, string nContent) : base(nContent)
-		{
-			row = nRow;
-			column = nColumn;
-		}
-
-		public ExcelCellInfo (int nRow, int nColumn, string nContent, string nFormat)
-			: base(nContent, nFormat)
-		{
-			row = nRow;
-			column = nColumn;
-		}
-
-		public ExcelCellInfo (int nRow, int nColumn, string nContent, string nFormat, string nPrefix, string nFormula) 
+		public ExcelCellInfo (int nRow=-1, int nCol=-1, string nContent="", string nFormat="", string nPrefix="", string nFormula="") 
 			: base(nContent, nFormat, nPrefix, nFormula)
 		{
 			row = nRow;
-			column = nColumn;
+			col = nCol;
+		}
+
+		public ExcelCellInfo (DataCell cell) : base()
+		{
+			row = cell.RowIndex + 1;
+			col = cell.ColumnIndex + 1;
+
+			if ( cell.Formula != null && cell.Formula.Trim ().Length > 0 )
+				formula = cell.Formula;
+			if ( cell.HasPrefix () )
+				prefix = cell.PrefixChar;
+			if ( cell.Value != null )
+				content = cell.Value.ToString();
+			if ( cell.CellFormat == null )
+				format = "";
+			else 
+			{
+				format = (string)cell.CellFormat;
+				if ( format == "General" )
+					format = "";
+			}
 		}
 
 		public ExcelCellInfo (string info)
 		{
-			row = 0;
-			column = 0;
+			row = col = 0;
+
 			string [] fields= info.Split ('\t');
 			if (fields.Length < 5)
 				return;
@@ -142,12 +131,17 @@ namespace MGEditor
 			int indx = fields [0].IndexOf ("C");
 			try {
 				row= Convert.ToInt32(fields [0].Substring (1, indx - 1));
-				column= Convert.ToInt32(fields [0].Substring (indx+1));
+				col= Convert.ToInt32(fields [0].Substring (indx+1));
 			}   
 			catch (FormatException) {
 				return;
 			}
 
+			if (fields [1] == "" && fields [2] == "" && fields [3] == "" && fields [4] == "") 
+			{
+				row = col = 0;
+				return;
+			}
 			content = fields [1];
 			format  = fields [2];
 			prefix  = fields [3];
@@ -156,21 +150,21 @@ namespace MGEditor
 
 		public string Address {
 			get{
-				if (row <= 0 || column <= 0)
+				if (row <= 0 || col <= 0)
 					return "";
 				else
-					return "R" + row.ToString () + "C" + column.ToString ();
+					return "R" + row.ToString () + "C" + col.ToString ();
 			}
 		}
 
 		public void Print ()
 		{
-			if (row <= 0 || column <= 0)
+			if (row <= 0 || col <= 0)
 				System.Console.Out.WriteLine ("Wrong data");
 			else 
 			{
 				string prfx = prefix == "" ? " " : prefix;
-				Console.Out.Write ("R{0}C{1}: {2}{3}", row, column, prfx, content);
+				Console.Out.Write ("R{0}C{1}: {2}{3}", row, col, prfx, content);
 				if (format != "")
 					Console.Out.Write (" format={0}", format);
 				if (formula != "")
@@ -189,9 +183,9 @@ namespace MGEditor
 			}
 			if (orderToCompare.row == row) 
 			{
-				if (orderToCompare.column < column)
+				if (orderToCompare.col < col)
 					return 1;
-				if (orderToCompare.column == column)
+				if (orderToCompare.col == col)
 					return 0;
 				else
 					return -1;
@@ -199,6 +193,14 @@ namespace MGEditor
 			else
 				return -1;
 		}
+
+		public bool IsEqual(ExcelCellInfo other)
+		{
+			if (CompareTo (other) != 0)
+				return false;
+			return (this as ExcelCell) == (other as ExcelCell);
+		}
+
 	}
 	#endregion
 }

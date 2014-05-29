@@ -348,6 +348,17 @@ End Sub
 
 Sub UnhideByMekko()
     Workbooks(myName).Windows(1).Visible = True
+    'Application.ShowRibbon = True
+    
+    With ActiveWindow
+        .WindowState = xlNormal
+        .Height = 360
+        .Width = 1500
+        .Left = 50
+        .Top = 620
+        .ScrollColumn = 1
+        .ScrollRow = 1
+    End With
 End Sub
 
 Sub CleanupByMekko()

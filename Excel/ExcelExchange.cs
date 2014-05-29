@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.ComponentModel;
 using System.Collections.Generic;
-
+using Wizard2004;
 
 namespace MGEditor
 {
@@ -17,6 +17,8 @@ namespace MGEditor
 		private static NSObject observExcelChanges= null;
 		private static NSObject observExcelClosed= null;
 		private static NSObject observExcelEmpty= null;
+
+		private static ChartData chartDataArray = null;
 
 		private static ExcelCell[,] CellsArray= null;
 		private static List<ExcelCellInfo> CellsList= null;
@@ -40,54 +42,6 @@ namespace MGEditor
 		private static bool takeFromExcel= false;
 		private static bool printDebugOutput= true;
 
-
-		public static List<ExcelCellInfo> TestList()
-		{
-			List<ExcelCellInfo> myCells = new List<ExcelCellInfo> ();
-			myCells.Add (new ExcelCellInfo (2, 2, "Series1"));
-			myCells.Add (new ExcelCellInfo (2, 3, "Series2"));
-			myCells.Add (new ExcelCellInfo (2, 4, "Series3"));
-			int j = 0;
-			int numRow = 49;
-			for (int i = 3; i < numRow; i++) 
-			{
-				myCells.Add (new ExcelCellInfo (i, 1, i.ToString()));
-				myCells.Add (new ExcelCellInfo (i, 2, (51.0/i).ToString(), "0.000"));
-				myCells.Add (new ExcelCellInfo (i, 3, (i+2000).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 4, (-14.0 + 0.5*i).ToString(), "$##,##0.00_);[Red]($#,##0.00)"));
-				if (i % 5 == 0) {
-					j++;
-					myCells.Add (new ExcelCellInfo (i, 5, " <--Case " + j.ToString ()));
-				}
-				myCells.Add (new ExcelCellInfo (i,  6, (100-i).ToString()));
-				myCells.Add (new ExcelCellInfo (i,  7, (200+i).ToString()));
-				myCells.Add (new ExcelCellInfo (i,  8, (300-i).ToString()));
-				myCells.Add (new ExcelCellInfo (i,  9, (400+i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 10, (500-i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 11, (600+i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 12, (700-i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 13, (800+i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 14, (900-i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 15, (900+i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 16, (i*i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 17, (100-i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 18, (200-i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 19, (300-i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 20, (i*i+2).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 21, (18+i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 22, (22+i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 23, (2-0.3*i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 24, (-i*i).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 25, (i*(i+1)/2).ToString()));
-				myCells.Add (new ExcelCellInfo (i, 26, (i*(i-1)/2).ToString()));
-			}
-			myCells.Add (new ExcelCellInfo (numRow+1, 2, "", "0.000", "", "=SUM(B3:B" + (numRow-1).ToString() + ")"));
-			myCells.Add (new ExcelCellInfo (numRow+1, 3, "", "", "", "=AVERAGE(C3:C" + (numRow-1).ToString() + ")"));
-			myCells.Add (new ExcelCellInfo (numRow+1, 4, "", "$##,##0.00_);[Red]($#,##0.00)", "", "=SUM(D3:D" + (numRow-1).ToString() + ")"));
-			myCells.Add (new ExcelCellInfo (numRow+1, 6, "", "", "", "=AVERAGE(F3:F" + (numRow-1).ToString() + ")"));
-			myCells.Add (new ExcelCellInfo (numRow+1,16, "", "", "", "=SUM(P3:P" + (numRow-1).ToString() + ")"));
-			return myCells;
-		}
 
 		private static void StopSessionObservers()
 		{
@@ -162,19 +116,45 @@ namespace MGEditor
 
 
 		//-------------------------------------
-		public static void StartSession(List<ExcelCellInfo> cellsInput)
+		public static void UpdateSpreadSheetFromArray(ChartData chartData)
 		{
-			if (cellsInput == null)
-				cellsInput = TestList ();
-
-			takeFromExcel= false;
-			firstRun= false;
+//			chartDataArray = chartData;
+//
+//			int lastRow = chartDataArray.Data.GetLength (0);
+//			int lastCol = chartDataArray.Data.GetLength (1);
+//			if (lastRow < 2 && lastCol < 2)
+//			{
+//				//Logger.LogVerbose("UpdateSpreadSheetFromArray", "Data Array is empty!");
+//				return;
+//			}
+//
+//			CellsListInput = new List<ExcelCellInfo> ();
+//
+//			DataCell cell = null;
+//			for (int row = 0; row < lastRow; row++) 
+//			{
+//				for (int col = 0; col < lastCol; col++) 
+//				{
+//					cell = (DataCell)chartDataArray.Data.GetValue(row, col);
+//					if (cell != null) 
+//					{
+//						ExcelCellInfo cellInfo = new ExcelCellInfo (cell);
+//						CellsListInput.Add (cellInfo);
+//					}
+//				}
+//			}
+//			CellsListInput.Sort ();
 
 			CellsListInput = new List<ExcelCellInfo> ();
+			List<ExcelCellInfo> cellsInput = TestList ();
+
 			foreach (ExcelCellInfo info in cellsInput) {
 				CellsListInput.Add (info);
 			}
 			CellsListInput.Sort ();
+
+			takeFromExcel= false;
+			firstRun= false;
 
 			CellsArrayInput = ExcelCellsArray.RebuildSessionArray ( cellsInput, 
 																	out minRowInput, 
@@ -182,47 +162,45 @@ namespace MGEditor
 																	out numRowInput, 
 																	out numColInput);
 
-			if (observExcelChanges != null && CellsArray != null && CellsList != null) 
+			if (observExcelChanges != null && CellsArray != null && CellsList != null && 
+				minRowInput == minRow && minColInput == minCol && numRowInput == numRow && numColInput == numCol) 
 			{
-				if (minRowInput == minRow && minColInput == minCol && numRowInput == numRow && numColInput == numCol) 
+				bool theSame = true;
+				for (int iR = 0; iR < numRow; iR++) 
 				{
-					bool theSame = true;
-					for (int iR = 0; iR < numRow; iR++) 
+					for (int iC = 0; iC < numCol; iC++) 
 					{
-						for (int iC = 0; iC < numCol; iC++) 
-						{
-							if (CellsArray [iR, iC] != CellsArrayInput [iR, iC]) {
-								theSame = false;
-								break;
-							}
-						}
-						if (!theSame)
+						if (CellsArray [iR, iC] != CellsArrayInput [iR, iC]) {
+							theSame = false;
 							break;
+						}
 					}
-
-					if (theSame) 
-					{
-						if (printDebugOutput)
-							Console.Out.WriteLine ("Old session and input data are the same");
-						StopSessionObservers ();
-						ClearInputData ();
-						StartSessionObservers ();
-						ExcelAppleScript.StartExcel ();
-						return;
-					} 
-					else 
-					{
-						if (printDebugOutput)
-							Console.Out.WriteLine ("Old session and input data are different");
-						StopSessionObservers ();
-						ClearSessionData ();
-						DispatchQueue.MainQueue.DispatchAsync (() => {
-							CreateNewSession();
-						});
-						return;
-					}
+					if (!theSame)
+						break;
 				}
-			} 
+
+				if (theSame) 
+				{
+					if (printDebugOutput)
+						Console.Out.WriteLine ("Old session and input data are the same");
+					StopSessionObservers ();
+					ClearInputData ();
+					StartSessionObservers ();
+					ExcelAppleScript.StartExcel ();
+					return;
+				} 
+				else 
+				{
+					if (printDebugOutput)
+						Console.Out.WriteLine ("Old session and input data are different");
+					StopSessionObservers ();
+					ClearSessionData ();
+					DispatchQueue.MainQueue.DispatchAsync (() => {
+						CreateNewSession();
+					});
+					return;
+				}
+			}
 			else 
 			{
 				if (printDebugOutput)
@@ -374,7 +352,7 @@ namespace MGEditor
 			foreach (ExcelCellInfo cellInfo in data.dataList)
 			{
 				int iR= cellInfo.row;
-				int iC = cellInfo.column;
+				int iC = cellInfo.col;
 
 				if (iR < minRow || maxRow < iR || iC < minCol || maxCol < iC) 
 				{
@@ -431,6 +409,65 @@ namespace MGEditor
 
 			data.Dispose ();
 		}
+	
+
+
+
+
+
+
+
+
+	
+	
+		public static List<ExcelCellInfo> TestList()
+		{
+			List<ExcelCellInfo> myCells = new List<ExcelCellInfo> ();
+			myCells.Add (new ExcelCellInfo (2, 2, "Series1"));
+			myCells.Add (new ExcelCellInfo (2, 3, "Series2"));
+			myCells.Add (new ExcelCellInfo (2, 4, "Series3"));
+			int j = 0;
+			int numRow = 49;
+			for (int i = 3; i < numRow; i++) 
+			{
+				myCells.Add (new ExcelCellInfo (i, 1, i.ToString()));
+				myCells.Add (new ExcelCellInfo (i, 2, (51.0/i).ToString(), "0.000"));
+				myCells.Add (new ExcelCellInfo (i, 3, (i+2000).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 4, (-14.0 + 0.5*i).ToString(), "$##,##0.00_);[Red]($#,##0.00)"));
+				if (i % 5 == 0) {
+					j++;
+					myCells.Add (new ExcelCellInfo (i, 5, " <--Case " + j.ToString ()));
+				}
+				myCells.Add (new ExcelCellInfo (i,  6, (100-i).ToString()));
+				myCells.Add (new ExcelCellInfo (i,  7, (200+i).ToString()));
+				myCells.Add (new ExcelCellInfo (i,  8, (300-i).ToString()));
+				myCells.Add (new ExcelCellInfo (i,  9, (400+i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 10, (500-i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 11, (600+i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 12, (700-i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 13, (800+i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 14, (900-i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 15, (900+i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 16, (i*i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 17, (100-i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 18, (200-i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 19, (300-i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 20, (i*i+2).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 21, (18+i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 22, (22+i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 23, (2-0.3*i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 24, (-i*i).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 25, (i*(i+1)/2).ToString()));
+				myCells.Add (new ExcelCellInfo (i, 26, (i*(i-1)/2).ToString()));
+			}
+			myCells.Add (new ExcelCellInfo (numRow+1, 2, "", "0.000", "", "=SUM(B3:B" + (numRow-1).ToString() + ")"));
+			myCells.Add (new ExcelCellInfo (numRow+1, 3, "", "", "", "=AVERAGE(C3:C" + (numRow-1).ToString() + ")"));
+			myCells.Add (new ExcelCellInfo (numRow+1, 4, "", "$##,##0.00_);[Red]($#,##0.00)", "", "=SUM(D3:D" + (numRow-1).ToString() + ")"));
+			myCells.Add (new ExcelCellInfo (numRow+1, 6, "", "", "", "=AVERAGE(F3:F" + (numRow-1).ToString() + ")"));
+			myCells.Add (new ExcelCellInfo (numRow+1,16, "", "", "", "=SUM(P3:P" + (numRow-1).ToString() + ")"));
+			return myCells;
+		}
+
 	}
 }
 
